@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: elevate-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Elevate123!@#
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - elevate-network
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Elevate123!@#" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: ./Elevate
+      dockerfile: Dockerfile
+    container_name: elevate-api
+    ports:
+      - "80:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=ElevateDb;User Id=sa;Password=Elevate123!@#;TrustServerCertificate=True;Encrypt=False
+      - Jwt__Issuer=Elevate
+      - Jwt__Audience=ElevateClients
+      - Jwt__SigningKey=ReplaceWithARealSecretKeyForProduction123!
+      - Jwt__ExpiresMinutes=120
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - elevate-network
+    restart: unless-stopped
+
+networks:
+  elevate-network:
+    driver: bridge
+
+volumes:
+  mssql-data:
+
+
