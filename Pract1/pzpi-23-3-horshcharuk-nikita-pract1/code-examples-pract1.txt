@@ -1,0 +1,175 @@
+﻿Назва інструменту та версія:
+ChatGPT (OpenAI), модель GPT-5.3.
+
+Мета використання:
+Інструмент використано для генерації прикладів програмного коду із застосуванням шаблона проєктування Strategy мовою програмування C#. Штучний інтелект застосовувався для створення інтерфейсів стратегій, конкретних реалізацій алгоритмів, класу контексту, а також демонстрацій використання шаблона в різних сценаріях.
+
+Зокрема, ШІ було використано для:
+
+створення прикладу шаблона Strategy для арифметичних операцій;
+створення ігрового прикладу використання шаблона Strategy;
+формування повної структури класів відповідно до патерна;
+генерації демонстраційного коду використання стратегій.
+
+Внесок автора:
+Автор сформулював запити до ШІ щодо створення прикладів використання шаблона Strategy мовою C#. Отримані результати було перевірено на відповідність принципам шаблона проєктування Strategy та вимогам практичної роботи. Згенерований програмний код було відредаговано, адаптовано до структури звіту, а також доповнено поясненнями. Автор виконав фінальну перевірку працездатності прикладів, структуризацію коду та його оформлення відповідно до вимог дисципліни.
+
+Використані Запити:
+
+1. Запити для пункту 1 — Арифметичні операції
+
+Запити до ШІ:
+
+"Покажи приклад використання шаблона проєктування Strategy мовою C#."
+"Покажи інший приклад не пов'язаний з різними способами оплати."
+"Напиши повний приклад шаблону проєктування Strategy мовою C# для математичних операцій."
+
+Результат:
+Було згенеровано приклад реалізації шаблона Strategy для виконання арифметичних операцій. Реалізація містить інтерфейс стратегії, конкретні класи стратегій для додавання, віднімання та множення, а також клас контексту для делегування виконання алгоритму. Контекст дозволяє змінювати стратегію під час виконання програми, що демонструє основну ідею шаблона Strategy. Приклад також містить демонстраційний клас Program з використанням різних стратегій.
+
+Отримано:
+1  using System;
+2  
+3  namespace StrategyPatternExample
+4  {
+5      public interface IStrategy
+6      {
+7          int Execute(int a, int b);
+8      }
+9  
+10     public class AdditionStrategy : IStrategy
+11     {
+12         public int Execute(int a, int b)
+13         {
+14             return a + b;
+15         }
+16     }
+17 
+18     public class SubtractionStrategy : IStrategy
+19     {
+20         public int Execute(int a, int b)
+21         {
+22             return a - b;
+23         }
+24     }
+25 
+26     public class MultiplicationStrategy : IStrategy
+27     {
+28         public int Execute(int a, int b)
+29         {
+30             return a * b;
+31         }
+32     }
+33 
+34     public class Context
+35     {
+36         private IStrategy _strategy;
+37 
+38         public Context(IStrategy strategy)
+39         {
+40             _strategy = strategy;
+41         }
+42 
+43         public void SetStrategy(IStrategy strategy)
+44         {
+45             _strategy = strategy;
+46         }
+47 
+48         public int ExecuteStrategy(int a, int b)
+49         {
+50             return _strategy.Execute(a, b);
+51         }
+52     }
+53 
+54     internal class Program
+55     {
+56         static void Main(string[] args)
+57         {
+58             Context context = new Context(new AdditionStrategy());
+59             Console.WriteLine("Додавання: " + context.ExecuteStrategy(10, 5));
+60 
+61             context.SetStrategy(new SubtractionStrategy());
+62             Console.WriteLine("Віднімання: " + context.ExecuteStrategy(10, 5));
+63 
+64             context.SetStrategy(new MultiplicationStrategy());
+65             Console.WriteLine("Множення: " + context.ExecuteStrategy(10, 5));
+66         }
+67     }
+68 }
+
+
+2. Запит для пункту 2 — Поведінка персонажа у грі
+
+Запит до ШІ:
+
+"Покажи ігровий приклад використання шаблона проєктування Strategy мовою C#."
+
+Результат:
+Було згенеровано приклад використання шаблона Strategy для моделювання поведінки персонажа у комп’ютерній грі. Реалізація містить інтерфейс стратегії атаки, класи конкретних стратегій (атака мечем, луком та магією), а також клас персонажа, який використовує поточну стратегію атаки. Персонаж може змінювати тип атаки під час виконання програми, що демонструє гнучкість шаблона Strategy та можливість динамічної зміни поведінки.
+
+Отримано:
+1  using System;
+2  
+3  namespace GameStrategyExample
+4  {
+5      public interface IAttackStrategy
+6      {
+7          void Attack();
+8      }
+9  
+10     public class SwordAttack : IAttackStrategy
+11     {
+12         public void Attack()
+13         {
+14             Console.WriteLine("Персонаж атакує мечем");
+15         }
+16     }
+17 
+18     public class BowAttack : IAttackStrategy
+19     {
+20         public void Attack()
+21         {
+22             Console.WriteLine("Персонаж стріляє з лука");
+23         }
+24     }
+25 
+26     public class MagicAttack : IAttackStrategy
+27     {
+28         public void Attack()
+29         {
+30             Console.WriteLine("Персонаж використовує магію");
+31         }
+32     }
+33 
+34     public class Character
+35     {
+36         private IAttackStrategy _attackStrategy;
+37 
+38         public void SetAttackStrategy(IAttackStrategy strategy)
+39         {
+40             _attackStrategy = strategy;
+41         }
+42 
+43         public void PerformAttack()
+44         {
+45             _attackStrategy.Attack();
+46         }
+47     }
+48 
+49     class Program
+50     {
+51         static void Main(string[] args)
+52         {
+53             Character hero = new Character();
+54 
+55             hero.SetAttackStrategy(new SwordAttack());
+56             hero.PerformAttack();
+57 
+58             hero.SetAttackStrategy(new BowAttack());
+59             hero.PerformAttack();
+60 
+61             hero.SetAttackStrategy(new MagicAttack());
+62             hero.PerformAttack();
+63         }
+64     }
+65 }
