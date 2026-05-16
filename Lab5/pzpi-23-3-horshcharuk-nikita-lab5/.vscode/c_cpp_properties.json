@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Elevate IoT",
+            "compilerPath": "${env:USERPROFILE}/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-g++.exe",
+            "includePath": [
+                "${workspaceFolder}/Server/Elevate.IoT/include",
+                "${workspaceFolder}/Server/Elevate.IoT/src",
+                "${workspaceFolder}/Server/Elevate.IoT/.pio/libdeps/esp32doit-devkit-v1/**",
+                "${env:USERPROFILE}/.platformio/packages/framework-arduinoespressif32/**"
+            ],
+            "defines": [
+                "ARDUINO=10805",
+                "ARDUINO_ARCH_ESP32",
+                "ESP32"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}

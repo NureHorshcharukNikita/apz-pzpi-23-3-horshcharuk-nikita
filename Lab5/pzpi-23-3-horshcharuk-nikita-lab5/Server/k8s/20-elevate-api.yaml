@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elevate-api-config
+  namespace: elevate
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  Jwt__Issuer: "Elevate"
+  Jwt__Audience: "ElevateClients"
+  Jwt__ExpiresMinutes: "120"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elevate-api-secret
+  namespace: elevate
+type: Opaque
+stringData:
+  connection-string: "Server=sqlserver,1433;Database=ElevateDb;User Id=sa;Password=ElevateSql!K8sSa1;TrustServerCertificate=True;MultipleActiveResultSets=true"
+  jwt-signing-key: "ElevateJwtSigningKey_DevOnly_MinimumLength32Chars!!"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elevate-api
+  namespace: elevate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elevate-api
+  template:
+    metadata:
+      labels:
+        app: elevate-api
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: elevate-api
+      initContainers:
+        - name: wait-for-sqlserver
+          image: public.ecr.aws/docker/library/busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z sqlserver 1433; do echo waiting for sqlserver; sleep 2; done
+              echo sqlserver port is open
+      containers:
+        - name: api
+          image: elevate-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: elevate-api-config
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: elevate-api-secret
+                  key: connection-string
+            - name: Jwt__SigningKey
+              valueFrom:
+                secretKeyRef:
+                  name: elevate-api-secret
+                  key: jwt-signing-key
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elevate-api
+  namespace: elevate
+spec:
+  type: ClusterIP
+  selector:
+    app: elevate-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
